@@ -1,6 +1,6 @@
 # document-writer
 
-AI document writer powered by GPT for Vue components
+AI document writer powered by GPT for Vue components.
 
 This project is created by [create-typescript-cli](https://github.com/backrunner/create-typescript-cli).
 
