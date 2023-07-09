@@ -11,13 +11,11 @@ program.name(name);
 program.version(version);
 
 program
-  .option('-o, --output', 'Directory to output')
-  .option('-v', '--version', 'Version of Vue')
-  .option('-l', '--language', 'Document language')
+  .option('-o, --output <output>', 'Directory to output')
+  .option('-v, --version <version>', 'Version of Vue')
+  .option('-l, --language <language>', 'Document language')
   .argument('<input-path>', 'The input path which contains the Vue components, should be a directory.')
-  .action(async () => {
-    const options = program.opts();
-    const inputPath = program.args[0];
+  .action(async (inputPath, options) => {
     await writeDocument(inputPath, options);
   });
 
