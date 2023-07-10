@@ -2,19 +2,33 @@
 
 AI document writer powered by GPT for Vue components.
 
-This project is created by [create-typescript-cli](https://github.com/backrunner/create-typescript-cli).
-
 ## Usage
 
-To build this project, you can run this command:
+(Note: this package has not been published yet)
 
 ```
-npm run build
+npm i @any-design/document-writer
 ```
 
-Also, you can use `npm run watch` to start a file changes.
+The use it by a command line:
 
-All changes you make will immediately trigger compilation and take effect on the generated script.
+```bash
+dw ./src/packages -o ./docs/components --language English
+```
+
+At current, it only support Azure OpenAI API, you should set the `azure_openai_endpoint`, `azure_openai_key` and `azure_openai_model` by this command line after all the generation:
+
+```bash
+dw config set <key> <value>
+```
+
+To specify an example for the generation, you can create a file named `.documentwriter` in your project root, and put the following content in it:
+
+```json
+{
+  "example": "path/to/example.md"
+}
+```
 
 ## License
 

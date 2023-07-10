@@ -1,5 +1,5 @@
 {
-  "name": "document-writer",
+  "name": "@any-design/document-writer",
   "version": "0.1.0",
   "description": "AI document writer powered by GPT for Vue components",
   "main": "./bin/cli.js",
