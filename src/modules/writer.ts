@@ -1,4 +1,3 @@
-import ProgressBar from 'progress';
 import chalk from 'chalk';
 import { promises as fsp, Dirent } from 'fs';
 import * as fs from 'fs';
@@ -26,12 +25,13 @@ You are an assistant specialized in creating Markdown format documentation for V
 
 And you should following these rules while creating document:
 
-1. Never explain the stylesheet of the Vue component
-2. You should explain all the props.
-3. Ignore all imported components from other packages, you should only generate content about current component.
-4. If an example or template is provided, the generated content should align with the format of the provided content, maintaining stylistic consistency.
-5. If the component will not emit any event, the generated document should not contain the events part.
-6. If the component doesn't have any exposed methods or values, the generated document should not contain the exposed methods or values part.
+1. Never explain the stylesheet of the Vue component.
+2. Never explain the internal values in the Vue component.
+3. You should explain all the props.
+4. Ignore all imported components from other packages, you should only generate content about current component.
+5. If an example or template is provided, the generated document should align with the format of the provided content, maintaining stylistic consistency.
+6. If the component won't emit any event, you should not explain that or generate a part says there's no events.
+7. If the component doesn't have any exposed methods or values, you should not explain that or generate a part says there's no exposed methods or values.
 
 Apart from the content mentioned above, the document should not contain any additional information. Carefully study the Vue component code and explain it in the most direct and clear manner, so that other developers can quickly understand and use it.
 `.trim();
@@ -47,14 +47,6 @@ async function handleDirectory(directory: string, output: string, options: Write
     }
 
     const dirents = await fsp.readdir(directoryPath, { withFileTypes: true });
-
-    const bar = new ProgressBar('Processing [:bar] :percent :etas', {
-      total: dirents.length,
-      width: 20,
-      complete: '=',
-      incomplete: ' ',
-      renderThrottle: 100,
-    });
 
     const promises = dirents.map(async (dirent: Dirent) => {
       const resPath = path.resolve(directoryPath, dirent.name);
@@ -97,21 +89,10 @@ async function handleDirectory(directory: string, output: string, options: Write
         }
         await fsp.writeFile(filePath, result.content, 'utf8');
         console.log(chalk.green(`Document has been successfully generated and saved at ${filePath}`));
-        bar.tick({
-          component: dirent.name,
-        });
       }
     });
 
-    await Promise.all(promises)
-      .then(() => {
-        bar.render(1, true);
-        bar.terminate();
-      })
-      .catch((error) => {
-        console.error(`An error occurred while processing the directory ${directory}:`, error);
-        bar.terminate();
-      });
+    await Promise.all(promises);
   } catch (error) {
     console.error(`An error occurred while processing the directory ${directory}:`, error);
   }

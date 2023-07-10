@@ -39,7 +39,6 @@
     "chalk": "^4.1.2",
     "commander": "^11.0.0",
     "inquirer": "^8.2.5",
-    "progress": "^2.0.3",
     "userdata-storage": "^0.1.2"
   }
 }
