@@ -1,3 +1,4 @@
+import chalk from 'chalk';
 import { Command } from 'commander';
 import { setConfig, getConfig, listConfigs } from '../modules/config';
 
@@ -14,11 +15,11 @@ export function handleProgram(program: Command) {
       const keyToSet = key.toLowerCase();
       if (keyToSet && VALID_KEYS.includes(key)) {
         setConfig(keyToSet, value);
-        console.log(`Config ${keyToSet} set to ${value}`);
+        console.log(chalk.green(`Config ${keyToSet} set to ${value}`));
       } else if (keyToSet) {
-        console.log(`Invalid key. Please use ${VALID_KEYS.join(', ')}.`);
+        console.log(chalk.red(`Invalid key. Please use ${VALID_KEYS.join(', ')}.`));
       } else {
-        console.log('Please specify a valid key.');
+        console.log(chalk.red('Please specify a valid key.'));
       }
     });
 
@@ -30,11 +31,11 @@ export function handleProgram(program: Command) {
       const keyToGet = key.toLowerCase();
       if (keyToGet && VALID_KEYS.includes(keyToGet)) {
         const value = getConfig(keyToGet);
-        console.log(`Config ${keyToGet} is ${value}`);
+        console.log(chalk.cyan(`Config ${keyToGet} is ${value}`));
       } else if (keyToGet) {
-        console.log(`Invalid key. Please use ${VALID_KEYS.join(', ')}.`);
+        console.log(chalk.red(`Invalid key. Please use ${VALID_KEYS.join(', ')}.`));
       } else {
-        console.log('Please specify a valid key.');
+        console.log(chalk.red('Please specify a valid key.'));
       }
     });
 
@@ -43,6 +44,7 @@ export function handleProgram(program: Command) {
     .description('List all configs')
     .action(() => {
       const configs = listConfigs();
-      configs.forEach(([k, v]) => console.log(`${k}: ${v}`));
+      console.log(chalk.cyan("Here's the config:\n"));
+      configs.forEach(([k, v]) => console.log(chalk.white(`${k}: ${v}`)));
     });
 }

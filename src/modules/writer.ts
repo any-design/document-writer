@@ -1,8 +1,11 @@
+import ProgressBar from 'progress';
+import chalk from 'chalk';
 import { promises as fsp, Dirent } from 'fs';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as azure from './azure';
 import { getConfig } from './config';
+import { getExample } from './example';
 
 export interface WriterOptions {
   output?: string;
@@ -18,12 +21,17 @@ You are an assistant specialized in creating Markdown format documentation for V
 1. Introduction of the Vue component
 2. Basic usage and examples of the Vue component
 3. Props to be passed in, their meanings, and examples of these props
+4. Meanings of the Events the compoent will emit.
+5. Explain the exposed methods or values.
 
 And you should following these rules while creating document:
 
 1. Never explain the stylesheet of the Vue component
 2. You should explain all the props.
-3. Ignore imports that are not be included in component's package.
+3. Ignore all imported components from other packages, you should only generate content about current component.
+4. If an example or template is provided, the generated content should align with the format of the provided content, maintaining stylistic consistency.
+5. If the component will not emit any event, the generated document should not contain the events part.
+6. If the component doesn't have any exposed methods or values, the generated document should not contain the exposed methods or values part.
 
 Apart from the content mentioned above, the document should not contain any additional information. Carefully study the Vue component code and explain it in the most direct and clear manner, so that other developers can quickly understand and use it.
 `.trim();
@@ -39,6 +47,14 @@ async function handleDirectory(directory: string, output: string, options: Write
     }
 
     const dirents = await fsp.readdir(directoryPath, { withFileTypes: true });
+
+    const bar = new ProgressBar('Processing [:bar] :percent :etas', {
+      total: dirents.length,
+      width: 20,
+      complete: '=',
+      incomplete: ' ',
+      renderThrottle: 100,
+    });
 
     const promises = dirents.map(async (dirent: Dirent) => {
       const resPath = path.resolve(directoryPath, dirent.name);
@@ -60,8 +76,13 @@ async function handleDirectory(directory: string, output: string, options: Write
         return handleDirectory(resPath, outputPath, options);
       } else if (dirent.isFile() && dirent.name.endsWith('.vue') && (!matcher || matcher.test(dirent.name))) {
         const content = await fsp.readFile(resPath, 'utf8');
-        const systemPrompt = SYSTEM_PROMPT;
+        let systemPrompt = SYSTEM_PROMPT;
         const userPrompt = `Please write a document based on the following Vue${version} component code. The language of output document should be ${language}. The package which includes the component is named "${packageName}".\n\n${content}`;
+        // check the example
+        const example = getExample();
+        if (example) {
+          systemPrompt += `\n\nHere's an example of the document you will write, please ensure the stylistic consistency.\n\n${example}`;
+        }
         const messages = [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt },
@@ -75,11 +96,22 @@ async function handleDirectory(directory: string, output: string, options: Write
           throw new Error('The generated content is empty.');
         }
         await fsp.writeFile(filePath, result.content, 'utf8');
-        console.log(`Document has been successfully generated and saved at ${filePath}`);
+        console.log(chalk.green(`Document has been successfully generated and saved at ${filePath}`));
+        bar.tick({
+          component: dirent.name,
+        });
       }
     });
 
-    await Promise.all(promises);
+    await Promise.all(promises)
+      .then(() => {
+        bar.render(1, true);
+        bar.terminate();
+      })
+      .catch((error) => {
+        console.error(`An error occurred while processing the directory ${directory}:`, error);
+        bar.terminate();
+      });
   } catch (error) {
     console.error(`An error occurred while processing the directory ${directory}:`, error);
   }
